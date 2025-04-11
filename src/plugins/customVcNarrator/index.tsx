@@ -20,7 +20,7 @@ import { Devs } from "@utils/constants";
 import { Logger } from "@utils/Logger";
 import { Margins } from "@utils/margins";
 import { wordsToTitle } from "@utils/text";
-import definePlugin from "@utils/types";
+import definePlugin, { ReporterTestable } from "@utils/types";
 import { findByPropsLazy } from "@webpack";
 import { Button, ChannelStore, Forms, GuildMemberStore, SelectedChannelStore, SelectedGuildStore, useMemo, UserStore } from "@webpack/common";
 import { ReactElement } from "react";
@@ -193,6 +193,9 @@ export default definePlugin({
     name: "CustomVcNarrator",
     description: "Announces when users join, leave, or move voice channels via narrator. TikTok TTS version; speechSynthesis is pretty boring",
     authors: [Devs.Ven, Devs.Nyako, Devs.Loukious],
+    reporterTestable: ReporterTestable.None,
+
+    settings,
 
     flux: {
         VOICE_STATE_UPDATES({ voiceStates }: { voiceStates: VoiceState[]; }) {
