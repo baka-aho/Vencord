@@ -93,7 +93,7 @@ async function speak(text: string, { volume, rate } = settings.store) {
 
         await audio.play();
     } catch (error) {
-        new Logger("VcNarratorCustom").error("Failed to play TTS:", error);
+        new Logger("CustomVcNarrator").error("Failed to play TTS:", error);
     }
 }
 
@@ -190,7 +190,7 @@ function playSample(tempSettings: any, type: string) {
 }
 
 export default definePlugin({
-    name: "VcNarratorCustom",
+    name: "CustomVcNarrator",
     description: "Announces when users join, leave, or move voice channels via narrator. TikTok TTS version; speechSynthesis is pretty boring",
     authors: [Devs.Ven, Devs.Nyako, Devs.Loukious],
 

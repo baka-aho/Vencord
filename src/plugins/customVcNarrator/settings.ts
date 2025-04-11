@@ -82,7 +82,7 @@ export function getCurrentVoice() {
         const voice = TIKTOK_VOICES.find(v => v.id === settings.store.customVoice);
         if (voice) return voice;
 
-        new Logger("VcNarratorCustom").error(`Voice "${settings.store.customVoice}" not found. Resetting to default.`);
+        new Logger("CustomVcNarrator").error(`Voice "${settings.store.customVoice}" not found. Resetting to default.`);
     }
 
     const voice = getDefaultVoice();
