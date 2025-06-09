@@ -7,14 +7,14 @@
 import { Flex } from "@components/Flex";
 import { Margins } from "@utils/margins";
 import { classes } from "@utils/misc";
-import { closeModal, ModalCloseButton,ModalContent, ModalHeader, ModalRoot, openModal } from "@utils/modal";
+import { closeModal, ModalCloseButton, ModalContent, ModalHeader, ModalRoot, openModal } from "@utils/modal";
 import { LazyComponent } from "@utils/react";
 import { find, findByPropsLazy } from "@webpack";
-import { Button, Clickable, Forms, GuildStore, PermissionsBits, PermissionStore, Popout, SearchableSelect, showToast, Text, TextInput, Toasts, useMemo, UserStore, useState } from "@webpack/common";
+import { Button, Clickable, Forms, GuildStore, PermissionsBits, PermissionStore, Popout, SearchableSelect, showToast, Text, TextInput, Toasts, useMemo, useRef, UserStore, useState } from "@webpack/common";
 import { Guild } from "discord-types/general";
 import { HtmlHTMLAttributes } from "react";
 
-import { cl, getEmojiUrl,SoundEvent } from "../utils";
+import { cl, getEmojiUrl, SoundEvent } from "../utils";
 
 export function openCloneSoundModal(item) {
     const key = openModal(props =>
@@ -74,6 +74,8 @@ export function CloneSoundModal({ item, closeModal }: { item: SoundEvent, closeM
         setSoundEmoji(emoji);
     }
 
+    const popoutRef = useRef<HTMLDivElement>(null);
+
     return <>
         <ModalHeader>
             <Flex style={{ width: "100%", justifyContent: "center" }}>
@@ -125,21 +127,24 @@ export function CloneSoundModal({ item, closeModal }: { item: SoundEvent, closeM
                         shouldShow={show}
                         onRequestClose={() => setShow(false)}
                         renderPopout={() => <EmojiPicker pickerIntention={2} channel={{ getGuildId: () => selectedGuild?.id }} onSelectEmoji={onSelectEmoji} />}
+                        targetElementRef={popoutRef}
                     >
                         {() => (
                             <Clickable onClick={() => setShow(v => !v)}>
-                                <CustomInput style={{ display: "flex", flexDirection: "row", gap: "10px", alignItems: "center", cursor: "pointer" }}>
-                                    {soundEmoji ?
-                                        <>
-                                            <img src={getEmojiUrl({ name: soundEmoji.surrogates, id: soundEmoji.id })} width="24" height="24" style={{ cursor: "pointer" }} />
-                                            <Text style={{ color: "var(--text-muted)", cursor: "pointer" }}>:{soundEmoji.name ? soundEmoji.name.split("~")[0] : soundEmoji.uniqueName}:</Text>
-                                        </> :
-                                        <>
-                                            <img src={getEmojiUrl({ name: "😊" })} width="24" height="24" style={{ filter: "grayscale(100%)", cursor: "pointer" }} />
-                                            <Text style={{ color: "var(--text-muted)", cursor: "pointer" }}>Click to Select</Text>
-                                        </>
-                                    }
-                                </CustomInput>
+                                <div ref={popoutRef}>
+                                    <CustomInput style={{ display: "flex", flexDirection: "row", gap: "10px", alignItems: "center", cursor: "pointer" }}>
+                                        {soundEmoji ?
+                                            <>
+                                                <img src={getEmojiUrl({ name: soundEmoji.surrogates, id: soundEmoji.id })} width="24" height="24" style={{ cursor: "pointer" }} />
+                                                <Text style={{ color: "var(--text-muted)", cursor: "pointer" }}>:{soundEmoji.name ? soundEmoji.name.split("~")[0] : soundEmoji.uniqueName}:</Text>
+                                            </> :
+                                            <>
+                                                <img src={getEmojiUrl({ name: "😊" })} width="24" height="24" style={{ filter: "grayscale(100%)", cursor: "pointer" }} />
+                                                <Text style={{ color: "var(--text-muted)", cursor: "pointer" }}>Click to Select</Text>
+                                            </>
+                                        }
+                                    </CustomInput>
+                                </div>
                             </Clickable>
                         )}
                     </Popout>
@@ -184,10 +189,10 @@ export function CloneSoundModal({ item, closeModal }: { item: SoundEvent, closeM
                     return;
                 });
             }}
-            disabled={(!(selectedGuild && soundName && isEmojiValid)) || loadingButton}
-            size={Button.Sizes.MEDIUM}
-            style={{ width: "100%" }}
-            className={Margins.bottom16}>Add to Server</Button>
+                disabled={(!(selectedGuild && soundName && isEmojiValid)) || loadingButton}
+                size={Button.Sizes.MEDIUM}
+                style={{ width: "100%" }}
+                className={Margins.bottom16}>Add to Server</Button>
         </ModalContent>
     </>;
 }
