@@ -4,15 +4,50 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-export async function uploadFileToGofileNative(_, url: string, fileBuffer: ArrayBuffer, fileName: string, fileType: string, token?: string): Promise<string> {
+export async function uploadFileToGofileNative(_, fileBuffer: ArrayBuffer, fileName: string, fileType: string, token?: string): Promise<any> {
     try {
-        const formData = new FormData();
+        const serverResponse = await fetch("https://api.gofile.io/servers");
+        const serverData = await serverResponse.json();
+        const serverList = serverData.data.servers;
+        const server = serverList[Math.floor(Math.random() * serverList.length)].name;
 
+        const formData = new FormData();
         const file = new Blob([fileBuffer], { type: fileType });
         formData.append("file", new File([file], fileName));
 
         if (token) {
             formData.append("token", token);
+        }
+
+        const uploadUrl = `https://${server}.gofile.io/uploadFile`;
+        const uploadResponse = await fetch(uploadUrl, {
+            method: "POST",
+            body: formData,
+        });
+
+        const result = await uploadResponse.json();
+        return result;
+    } catch (error) {
+        console.error("Error during GoFile upload:", error);
+        throw error;
+    }
+}
+
+
+export async function uploadFileToCatboxNative(_, url: string, fileBuffer: ArrayBuffer, fileName: string, fileType: string, extraField: { userhash?: string; time?: string; }): Promise<string> {
+    try {
+        const formData = new FormData();
+        formData.append("reqtype", "fileupload");
+
+        const file = new Blob([fileBuffer], { type: fileType });
+        formData.append("fileToUpload", new File([file], fileName));
+
+        // Optional fields
+        if (extraField.userhash) {
+            formData.append("userhash", extraField.userhash);
+        }
+        if (extraField.time) {
+            formData.append("time", extraField.time);
         }
 
         const options: RequestInit = {
@@ -21,32 +56,6 @@ export async function uploadFileToGofileNative(_, url: string, fileBuffer: Array
         };
 
         const response = await fetch(url, options);
-        const result = await response.json();
-        return result;
-    } catch (error) {
-        console.error("Error during fetch request:", error);
-        throw error;
-    }
-}
-
-
-
-export async function uploadFileToCatboxNative(_, url: string, fileBuffer: ArrayBuffer, fileName: string, fileType: string, userHash: string): Promise<string> {
-    try {
-        const formData = new FormData();
-        formData.append("reqtype", "fileupload");
-
-        const file = new Blob([fileBuffer], { type: fileType });
-        formData.append("fileToUpload", new File([file], fileName));
-
-        formData.append("userhash", userHash);
-
-        const options: RequestInit = {
-            method: "POST",
-            body: formData,
-        };
-
-        const response = await fetch(url, options);
         const result = await response.text();
         return result;
     } catch (error) {
@@ -55,30 +64,6 @@ export async function uploadFileToCatboxNative(_, url: string, fileBuffer: Array
     }
 }
 
-export async function uploadFileToLitterboxNative(_, fileBuffer: ArrayBuffer, fileName: string, fileType: string, time: string): Promise<string> {
-    try {
-        const formData = new FormData();
-
-        formData.append("reqtype", "fileupload");
-
-        const file = new Blob([fileBuffer], { type: fileType });
-        formData.append("fileToUpload", new File([file], fileName));
-
-        formData.append("time", time);
-
-        const options: RequestInit = {
-            method: "POST",
-            body: formData,
-        };
-
-        const response = await fetch("https://litterbox.catbox.moe/resources/internals/api.php", options);
-        const result = await response.text();
-        return result;
-    } catch (error) {
-        console.error("Error during fetch request:", error);
-        throw error;
-    }
-}
 
 export async function uploadFileCustomNative(_, url: string, fileBuffer: ArrayBuffer, fileName: string, fileType: string, fileFormName: string, customArgs: Record<string, string>, customHeaders: Record<string, string>, responseType: string, urlPath: string[]): Promise<string> {
     try {

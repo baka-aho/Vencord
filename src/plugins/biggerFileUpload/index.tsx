@@ -593,136 +593,87 @@ async function uploadFileToGofile(file: File, channelId: string) {
         const fileName = file.name;
         const fileType = file.type;
 
-        const serverResponse = await fetch("https://api.gofile.io/servers");
-        const serverData = await serverResponse.json();
-        const server = serverData.data.servers[Math.floor(Math.random() * serverData.data.servers.length)].name;
+        const uploadResult = await Native.uploadFileToGofileNative(
+            arrayBuffer,
+            fileName,
+            fileType
+        );
 
-        const uploadResult = await Native.uploadFileToGofileNative(`https://${server}.gofile.io/uploadFile`, arrayBuffer, fileName, fileType);
-
-        if ((uploadResult as any).status === "ok") {
-            const { downloadPage } = (uploadResult as any).data;
+        if (uploadResult?.status === "ok") {
+            const { downloadPage } = uploadResult.data;
             setTimeout(() => sendTextToChat(`${downloadPage} `), 10);
-            UploadManager.clearAll(channelId, DraftType.SlashCommand);
-        }
-        else {
-            console.error("Unable to upload file. This is likely an issue with your network connection, firewall, or VPN.", uploadResult);
-            sendBotMessage(channelId, { content: "**Unable to upload file.** Check the console for more info. \n-# This is likely an issue with your network connection, firewall, or VPN." });
+            showToast("File Successfully Uploaded!", Toasts.Type.SUCCESS);
+        } else {
+            console.error("Upload failed:", uploadResult);
+            sendBotMessage(channelId, {
+                content: "**Unable to upload file.** Check the console for more info.\n-# This is likely an issue with your network connection, firewall, or VPN."
+            });
             showToast("File Upload Failed", Toasts.Type.FAILURE);
-            UploadManager.clearAll(channelId, DraftType.SlashCommand);
         }
+
+        UploadManager.clearAll(channelId, DraftType.SlashCommand);
     } catch (error) {
-        console.error("Unable to upload file. This is likely an issue with your network connection, firewall, or VPN.", error);
-        sendBotMessage(channelId, { content: "**Unable to upload file.** Check the console for more info. \n-# This is likely an issue with your network connection, firewall, or VPN." });
+        console.error("Upload error:", error);
+        sendBotMessage(channelId, {
+            content: "**Unable to upload file.** Check the console for more info.\n-# This is likely an issue with your network connection, firewall, or VPN."
+        });
         showToast("File Upload Failed", Toasts.Type.FAILURE);
         UploadManager.clearAll(channelId, DraftType.SlashCommand);
     }
 }
 
-async function uploadFileToCatbox(file: File, channelId: string) {
-    try {
-        const url = "https://catbox.moe/user/api.php";
-        const userHash = settings.store.catboxUserHash;
-        const fileSizeMB = file.size / (1024 * 1024);
 
+async function uploadFileToCatbox(file: File, channelId: string, temporary: boolean) {
+    try {
+        const fileSizeMB = file.size / (1024 * 1024);
         const arrayBuffer = await file.arrayBuffer();
         const fileName = file.name;
+        const fileType = file.type;
 
-        const uploadResult = await Native.uploadFileToCatboxNative(url, arrayBuffer, fileName, file.type, userHash);
+        let url = "";
+        const extraField: { userhash?: string; time?: string; } = {};
+
+        if (!temporary) {
+            url = "https://catbox.moe/user/api.php";
+            extraField.userhash = settings.store.catboxUserHash;
+        } else {
+            url = "https://litterbox.catbox.moe/resources/internals/api.php";
+            extraField.time = settings.store.litterboxTime;
+        }
+
+        const uploadResult = await Native.uploadFileToCatboxNative(
+            url,
+            arrayBuffer,
+            fileName,
+            fileType,
+            extraField
+        );
 
         if (uploadResult.startsWith("https://") || uploadResult.startsWith("http://")) {
             const videoExtensions = [".mp4", ".mkv", ".webm", ".avi", ".mov", ".flv", ".wmv", ".m4v", ".mpg", ".mpeg", ".3gp", ".ogv"];
             let finalUrl = uploadResult;
 
-            if (fileSizeMB >= 150 && videoExtensions.some(ext => finalUrl.endsWith(ext))) {
-                finalUrl = `https://embeds.video/${finalUrl}`;
+            if (fileSizeMB > 50 && videoExtensions.some(ext => finalUrl.endsWith(ext))) {
+                const uploadedFileName = finalUrl.split("/").pop();
+                finalUrl = `https://embeds.video/cat/${uploadedFileName}`;
             }
 
             setTimeout(() => sendTextToChat(`${finalUrl} `), 10);
             showToast("File Successfully Uploaded!", Toasts.Type.SUCCESS);
-            UploadManager.clearAll(channelId, DraftType.SlashCommand);
         } else {
-            console.error("Unable to upload file. This is likely an issue with your network connection, firewall, or VPN.", uploadResult);
-            sendBotMessage(channelId, { content: "**Unable to upload file.** Check the console for more info. \n-# This is likely an issue with your network connection, firewall, or VPN." });
+            console.error("Upload failed, likely due to network or firewall:", uploadResult);
+            sendBotMessage(channelId, {
+                content: "**Unable to upload file.** Check the console for more info.\n-# This is likely an issue with your network connection, firewall, or VPN."
+            });
             showToast("File Upload Failed", Toasts.Type.FAILURE);
-            UploadManager.clearAll(channelId, DraftType.SlashCommand);
         }
-    } catch (error) {
-        console.error("Unable to upload file. This is likely an issue with your network connection, firewall, or VPN.", error);
-        sendBotMessage(channelId, { content: "**Unable to upload file.** Check the console for more info. \n-# This is likely an issue with your network connection, firewall, or VPN." });
-        showToast("File Upload Failed", Toasts.Type.FAILURE);
+
         UploadManager.clearAll(channelId, DraftType.SlashCommand);
-    }
-}
-
-async function uploadFileToLitterbox(file: File, channelId: string) {
-    try {
-        const arrayBuffer = await file.arrayBuffer();
-        const fileName = file.name;
-        const fileType = file.type;
-        const fileSizeMB = file.size / (1024 * 1024);
-        const time = settings.store.litterboxTime;
-
-        const uploadResult = await Native.uploadFileToLitterboxNative(arrayBuffer, fileName, fileType, time);
-
-        if (uploadResult.startsWith("https://") || uploadResult.startsWith("http://")) {
-            const videoExtensions = [".mp4", ".mkv", ".webm", ".avi", ".mov", ".flv", ".wmv", ".m4v", ".mpg", ".mpeg", ".3gp", ".ogv"];
-            let finalUrl = uploadResult;
-
-            if (fileSizeMB >= 150 && videoExtensions.some(ext => finalUrl.endsWith(ext))) {
-                finalUrl = `https://embeds.video/${finalUrl}`;
-            }
-
-            setTimeout(() => sendTextToChat(`${finalUrl}`), 10);
-            showToast("File Successfully Uploaded!", Toasts.Type.SUCCESS);
-            UploadManager.clearAll(channelId, DraftType.SlashCommand);
-        } else {
-            console.error("Unable to upload file. This is likely an issue with your network connection, firewall, or VPN.", uploadResult);
-            showToast("File Upload Failed", Toasts.Type.FAILURE);
-            sendBotMessage(channelId, { content: "**Unable to upload file.** Check the console for more info. \n-# This is likely an issue with your network connection, firewall, or VPN." });
-            UploadManager.clearAll(channelId, DraftType.SlashCommand);
-        }
     } catch (error) {
-        console.error("Unable to upload file. This is likely an issue with your network connection, firewall, or VPN.", error);
-        sendBotMessage(channelId, { content: "**Unable to upload file.** Check the console for more info. \n-# This is likely an issue with your network connection, firewall, or VPN." });
-        showToast("File Upload Failed", Toasts.Type.FAILURE);
-        UploadManager.clearAll(channelId, DraftType.SlashCommand);
-    }
-}
-
-async function uploadFileCustom(file: File, channelId: string) {
-    try {
-        const arrayBuffer = await file.arrayBuffer();
-        const fileName = file.name;
-        const fileType = file.type;
-
-        const fileFormName = settings.store.customUploaderFileFormName || "file[]";
-        const customArgs = JSON.parse(settings.store.customUploaderArgs || "{}");
-        const customHeaders = JSON.parse(settings.store.customUploaderHeaders || "{}");
-        const responseType = settings.store.customUploaderResponseType;
-        const urlPath = settings.store.customUploaderURL.split(".");
-
-        const finalUrl = await Native.uploadFileCustomNative(settings.store.customUploaderRequestURL, arrayBuffer, fileName, fileType, fileFormName, customArgs, customHeaders, responseType, urlPath);
-
-        if (finalUrl.startsWith("https://") || finalUrl.startsWith("http://")) {
-            const videoExtensions = [".mp4", ".mkv", ".webm", ".avi", ".mov", ".flv", ".wmv", ".m4v", ".mpg", ".mpeg", ".3gp", ".ogv"];
-            let finalUrlModified = finalUrl;
-
-            if (videoExtensions.some(ext => finalUrlModified.endsWith(ext))) {
-                finalUrlModified = `https://embeds.video/${finalUrlModified}`;
-            }
-
-            setTimeout(() => sendTextToChat(`${finalUrlModified} `), 10);
-            showToast("File Successfully Uploaded!", Toasts.Type.SUCCESS);
-            UploadManager.clearAll(channelId, DraftType.SlashCommand);
-        } else {
-            console.error("Unable to upload file. This is likely an issue with your network connection, firewall, or VPN. Invalid URL returned");
-            sendBotMessage(channelId, { content: "**Unable to upload file.** Check the console for more info. \n-# This is likely an issue with your network connection, firewall, or VPN." });
-            showToast("File Upload Failed", Toasts.Type.FAILURE);
-            UploadManager.clearAll(channelId, DraftType.SlashCommand);
-        }
-    } catch (error) {
-        console.error("Unable to upload file. This is likely an issue with your network connection, firewall, or VPN.", error);
-        sendBotMessage(channelId, { content: `Unable to upload file. This is likely an issue with your network connection, firewall, or VPN. ${error}. Check the console for more info. \n-# This is likely an issue with your network connection, firewall, or VPN.` });
+        console.error("Upload error:", error);
+        sendBotMessage(channelId, {
+            content: "**Unable to upload file.** Check the console for more info.\n-# This is likely an issue with your network connection, firewall, or VPN."
+        });
         showToast("File Upload Failed", Toasts.Type.FAILURE);
         UploadManager.clearAll(channelId, DraftType.SlashCommand);
     }
@@ -735,10 +686,10 @@ async function uploadFile(file: File, channelId: string) {
             await uploadFileToGofile(file, channelId);
             break;
         case "Catbox":
-            await uploadFileToCatbox(file, channelId);
+            await uploadFileToCatbox(file, channelId, false);
             break;
         case "Litterbox":
-            await uploadFileToLitterbox(file, channelId);
+            await uploadFileToCatbox(file, channelId, true);
             break;
         case "Custom":
             await uploadFileCustom(file, channelId);
