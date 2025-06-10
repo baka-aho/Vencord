@@ -658,7 +658,7 @@ async function uploadFileToCatbox(file: File, channelId: string, temporary: bool
                 finalUrl = `https://embeds.video/cat/${uploadedFileName}`;
             }
 
-            setTimeout(() => sendTextToChat(`${finalUrl} `), 10);
+            setTimeout(() => sendTextToChat(finalUrl), 10);
             showToast("File Successfully Uploaded!", Toasts.Type.SUCCESS);
         } else {
             console.error("Upload failed, likely due to network or firewall:", uploadResult);
