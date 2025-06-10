@@ -57,6 +57,7 @@ export const CspPolicies: PolicyMap = {
     "dearrow-thumb.ajay.app": MediaSrc, // Dearrow Thumbnail CDN
     "usrbg.is-hardly.online": MediaSrc, // USRBG API
     "icons.duckduckgo.com": MediaSrc, // DuckDuckGo Favicon API (Reverse Image Search)
+    "tiktok-tts.weilnet.workers.dev": ConnectSrc, // TikTok TTS API
 };
 
 const findHeader = (headers: PolicyMap, headerName: Lowercase<string>) => {
