@@ -1,3 +1,25 @@
+## Installing / Uninstalling
+
+Visit https://github.com/Loukious/Installer/releases/latest
+
+## Fork additional plugins:
+- FakeDeafen
+    - You appear defeated to others, but can still hear them
+- QuestCompleter
+    - Auto completes Discord's quests for you
+- WhosWatching
+    - Shows who is watching your stream in the voice channel
+- BiggerFileUpload
+    - Allows you to upload files up to 1GB in size (using 3rd party services)
+- BetterClips:
+    - Record everyone, save clips from any stream with additional FPS/duration options (need to enable clips experimental feature in settings)
+- BetterMic/ScreenShare
+    - Gives you more control over your microphone and screen share settings, including bitrate, resolution, and frame rate
+- CustomVcNarrator
+    - Uses TikTok's text-to-speech instead of the default Discord one
+- BetterStremioActivity
+    - Changes the Stremio activity to show what you are watching instead of just "Watching Stremio" (needs this [Stremio fork](https://github.com/Loukious/stremio-shell-ng) to work)
+
 # Vencord
 
 ![](https://img.shields.io/github/package-json/v/Vendicated/Vencord?style=for-the-badge&logo=github&logoColor=d3869b&label=&color=1d2021&labelColor=282828)
@@ -19,10 +41,6 @@ The cutest Discord client mod
 -   Maintained very actively, broken plugins are usually fixed within 12 hours
 -   Settings sync: Keep your plugins and their settings synchronised between devices / apps (optional)
 
-
-## Installing / Uninstalling
-
-Visit https://github.com/Loukious/Installer/releases/latest
 
 ## Join our Support/Community Server
 
