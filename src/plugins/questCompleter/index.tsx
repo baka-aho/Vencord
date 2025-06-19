@@ -192,7 +192,7 @@ export default definePlugin({
         }
 
         const currentStream = ApplicationStreamingStore.getCurrentUserActiveStream();
-        const taskName = ["WATCH_VIDEO", "PLAY_ON_DESKTOP", "STREAM_ON_DESKTOP", "PLAY_ACTIVITY"].find(
+        const taskName = ["WATCH_VIDEO", "PLAY_ON_DESKTOP", "STREAM_ON_DESKTOP", "PLAY_ACTIVITY", "WATCH_VIDEO_ON_MOBILE"].find(
             x => quest.config.taskConfig.tasks[x] != null
         );
 
@@ -249,13 +249,13 @@ export default definePlugin({
             });
         };
 
-        if (taskName === "WATCH_VIDEO") {
+        if (taskName === "WATCH_VIDEO" || taskName === "WATCH_VIDEO_ON_MOBILE") {
             const tolerance = 2, speed = 10;
             const diff = Math.floor((Date.now() - new Date(quest.userStatus.enrolledAt).getTime()) / 1000);
             const startingPoint = Math.min(Math.max(Math.ceil(secondsDone), diff), secondsNeeded);
             const startTime = Date.now();
 
-            console.log(`[Quest] Starting WATCH_VIDEO: ${questName} at ${startingPoint}/${secondsNeeded}s`);
+            console.log(`[Quest] Starting ${taskName}: ${questName} at ${startingPoint}/${secondsNeeded}s`);
 
             const updateProgress = () => {
                 const currentProgress = Math.min(secondsNeeded, startingPoint + (Date.now() - startTime) / 1000 * (speed / tolerance));
