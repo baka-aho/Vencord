@@ -107,20 +107,11 @@ export default definePlugin({
 
     patches: [
         {
-            find: "renderPrioritySpeaker",
+            find: ".usernameSpeaking]",
             replacement: [
                 {
-                    match: /(render\(\)\{.+\}\),children:)\[(.+renderName\(\),)/,
-                    replace: "$&,$self.showClockInjection(this),"
-                }
-            ]
-        },
-        {
-            find: "renderPrioritySpeaker",
-            replacement: [
-                {
-                    match: /(renderName\(\)\{.+:"")/,
-                    replace: "$&,$self.showTextInjection(this),"
+                    match: /function\(\)\{.+:""(?=.*?userId:(\i))/,
+                    replace: "$&,$self.showTextInjection($1.id),"
                 }
             ]
         }
@@ -227,22 +218,22 @@ export default definePlugin({
         }
     },
 
-    showClockInjection(property: { props: { user: { id: string; }; }; }) {
+    showClockInjection(id: string) {
         if (settings.store.showWithoutHover) {
             return "";
         }
-        return this.showInjection(property);
+        return this.showInjection(id);
     },
 
-    showTextInjection(property: { props: { user: { id: string; }; }; }) {
+    showTextInjection(id: string) {
         if (!settings.store.showWithoutHover) {
             return "";
         }
-        return this.showInjection(property);
+        return this.showInjection(id);
     },
 
-    showInjection(property: { props: { user: { id: string; }; }; }) {
-        const userId = property.props.user.id;
+    showInjection(id: string) {
+        const userId = id;
         return this.renderTimer(userId);
     },
 
