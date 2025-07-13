@@ -164,7 +164,7 @@ export default definePlugin({
     },
 
     async openCompleteQuest(questId?: string) {
-        const quest = questId ? getQuestById(questId) : getLeftQuests();
+        var quest = questId ? getQuestById(questId) : getLeftQuests();
         if (!quest) {
             showToast("No active quest found!");
             return;
@@ -214,6 +214,7 @@ export default definePlugin({
                 return;
             } else {
                 showToast("Successfully auto enrolled in the quest!");
+                quest = questId ? getQuestById(questId) : getLeftQuests();
             }
         }
 
