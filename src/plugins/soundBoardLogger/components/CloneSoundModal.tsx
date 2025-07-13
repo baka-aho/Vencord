@@ -9,9 +9,9 @@ import { Margins } from "@utils/margins";
 import { classes } from "@utils/misc";
 import { closeModal, ModalCloseButton, ModalContent, ModalHeader, ModalRoot, openModal } from "@utils/modal";
 import { LazyComponent } from "@utils/react";
+import { Guild } from "@vencord/discord-types";
 import { find, findByPropsLazy } from "@webpack";
 import { Button, Clickable, Forms, GuildStore, PermissionsBits, PermissionStore, Popout, SearchableSelect, showToast, Text, TextInput, Toasts, useMemo, useRef, UserStore, useState } from "@webpack/common";
-import { Guild } from "discord-types/general";
 import { HtmlHTMLAttributes } from "react";
 
 import { cl, getEmojiUrl, SoundEvent } from "../utils";

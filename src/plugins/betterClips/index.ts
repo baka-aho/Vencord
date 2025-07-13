@@ -19,7 +19,7 @@
 import { definePluginSettings } from "@api/Settings";
 import { Devs } from "@utils/constants";
 import definePlugin, { OptionType } from "@utils/types";
-import { SelectOption } from "@webpack/types";
+import { SelectOption } from "@vencord/discord-types";
 
 
 const settings = definePluginSettings({
