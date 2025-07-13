@@ -176,10 +176,10 @@ export default definePlugin({
             return;
         }
 
-        if (!quest.userStatus?.enrolledAt) {
-            showToast("You need to start playing the video first, then pause it or accept the quest!");
-            return;
-        }
+        const currentStream = ApplicationStreamingStore.getCurrentUserActiveStream();
+        const taskName = ["WATCH_VIDEO", "PLAY_ON_DESKTOP", "STREAM_ON_DESKTOP", "PLAY_ACTIVITY", "WATCH_VIDEO_ON_MOBILE"].find(
+            x => quest.config.taskConfig.tasks[x] != null
+        );
 
         if (quest.userStatus?.completedAt) {
             showToast("This quest is already completed!");
@@ -191,14 +191,30 @@ export default definePlugin({
             return;
         }
 
-        const currentStream = ApplicationStreamingStore.getCurrentUserActiveStream();
-        const taskName = ["WATCH_VIDEO", "PLAY_ON_DESKTOP", "STREAM_ON_DESKTOP", "PLAY_ACTIVITY", "WATCH_VIDEO_ON_MOBILE"].find(
-            x => quest.config.taskConfig.tasks[x] != null
-        );
-
         if (!taskName) {
             showToast("Unsupported quest type!");
             return;
+        }
+
+        if (!quest.userStatus?.enrolledAt) {
+            showToast("Attempting to enroll in quest...");
+            const res = await RestAPI.post({
+                url: `/quests/${quest.id}/enroll`,
+                body: {
+                    location: 11,
+                    is_targeted: false
+                }
+            });
+            if (res.status !== 200) {
+                if (taskName === "WATCH_VIDEO" || taskName === "WATCH_VIDEO_ON_MOBILE") {
+                    showToast("You need to start playing the video first, then pause it or accept the quest!");
+                } else {
+                    showToast("Failed to auto enroll in the quest. Please try manually.");
+                }
+                return;
+            } else {
+                showToast("Successfully auto enrolled in the quest!");
+            }
         }
 
         try {
