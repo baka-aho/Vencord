@@ -178,7 +178,7 @@ export default definePlugin({
 
         const currentStream = ApplicationStreamingStore.getCurrentUserActiveStream();
         const taskName = ["WATCH_VIDEO", "PLAY_ON_DESKTOP", "STREAM_ON_DESKTOP", "PLAY_ACTIVITY", "WATCH_VIDEO_ON_MOBILE"].find(
-            x => quest.config.taskConfig.tasks[x] != null
+            x => quest.config.taskConfigV2.tasks[x] != null
         );
 
         if (quest.userStatus?.completedAt) {
@@ -243,7 +243,7 @@ export default definePlugin({
         const applicationId = quest.config.application.id;
         const applicationName = quest.config.application.name;
         const { questName } = quest.config.messages;
-        const secondsNeeded = quest.config.taskConfig.tasks[taskName].target;
+        const secondsNeeded = quest.config.taskConfigV2.tasks[taskName].target;
         const secondsDone = quest.userStatus?.progress?.[taskName]?.value ?? 0;
         const questsHeartbeat = findByCode("QUESTS_HEARTBEAT");
         const questsVideoProgress = findByCode("QUESTS_VIDEO_PROGRESS");
