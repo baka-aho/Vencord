@@ -14,7 +14,7 @@ import { BooProps } from "./types";
 export default definePlugin({
     name: "Boo",
     description: "Shows a ghost if you haven't responded to someone's DM",
-    authors: [{ name: "Vei", id: 239414094799699968n }, Devs.sadan],
+    authors: [Devs.Mickey],
     patches: [
         {
             find: "interactiveSelected]",

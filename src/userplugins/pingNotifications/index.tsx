@@ -6,7 +6,7 @@
 
 import { showNotification } from "@api/Notifications";
 import { definePluginSettings } from "@api/Settings";
-import { EquicordDevs } from "@utils/constants";
+import { Devs } from "@utils/constants";
 import definePlugin, { OptionType } from "@utils/types";
 import { findStoreLazy } from "@webpack";
 import {
@@ -92,7 +92,7 @@ function isUserBlocked(userId) {
 export default definePlugin({
     name: "PingNotifications",
     description: "Customizable notifications with improved mention formatting",
-    authors: [EquicordDevs.smuki],
+    authors: [Devs.Mickey],
     settings,
 
     flux: {

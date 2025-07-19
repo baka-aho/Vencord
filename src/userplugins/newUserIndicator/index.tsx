@@ -12,7 +12,7 @@ import ErrorBoundary from "@components/ErrorBoundary";
 import { Devs } from "@utils/constants";
 import definePlugin, { OptionType } from "@utils/types";
 import { SnowflakeUtils, Tooltip } from "@webpack/common";
-import { User } from "discord-types/general";
+import { User } from "../../../packages/discord-types/src/common/User";
 
 
 
@@ -74,7 +74,7 @@ export default definePlugin({
     name: "NewUserIndicator",
     description: "Adds an indicator that shows if a user's account has been created recently",
     authors: [
-        Devs.evergreen,
+        Devs.Mickey,
     ],
     patches: [],
     settings,

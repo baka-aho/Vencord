@@ -11,7 +11,7 @@ import { FluxDispatcher, UserStore } from "@webpack/common";
 export default definePlugin({
     name: "AlwaysPing",
     description: "You will always get pinged when replied to",
-    authors: [Devs.z1xus],
+    authors: [Devs.Mickey],
 
     start() {
         FluxDispatcher.subscribe("MESSAGE_CREATE", this.onMessageCreate);

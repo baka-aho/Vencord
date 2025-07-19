@@ -7,7 +7,7 @@
 import { findGroupChildrenByChildId, NavContextMenuPatchCallback } from "@api/ContextMenu";
 import { definePluginSettings } from "@api/Settings";
 import { classNameFactory } from "@api/Styles";
-import { Devs, EquicordDevs } from "@utils/constants";
+import { Devs } from "@utils/constants";
 import definePlugin, { OptionType } from "@utils/types";
 import { findByCodeLazy } from "@webpack";
 import { FluxDispatcher, Menu, MessageActions, MessageStore, RelationshipStore, SelectedChannelStore, UserStore } from "@webpack/common";
@@ -107,7 +107,7 @@ let clientOldChannelId: string | undefined;
 export default definePlugin({
     name: "VoiceChannelLog",
     description: "Log who joins and leaves voice channels",
-    authors: [Devs.Sqaaakoi, EquicordDevs.thororen],
+    authors: [Devs.Mickey],
     contextMenus: {
         "channel-context": patchChannelContextMenu
     },

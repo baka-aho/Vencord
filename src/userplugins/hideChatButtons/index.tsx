@@ -7,6 +7,7 @@
 import { ChatBarButton } from "@api/ChatButtons";
 import { definePluginSettings } from "@api/Settings";
 import definePlugin, { OptionType, StartAt } from "@utils/types";
+import { Devs } from "@utils/constants";
 import { React, useMemo, useState } from "@webpack/common";
 import type { MouseEventHandler, ReactNode } from "react";
 
@@ -78,10 +79,7 @@ export default definePlugin({
     description: "Be able to easily hide chat buttons",
     settings: settings,
     authors: [
-        {
-            name: "i am me",
-            id: 984392761929256980n,
-        },
+        Devs.Mickey
     ],
     patches: [
         {
