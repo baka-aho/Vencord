@@ -21,6 +21,5 @@ lerna-debug.log*
 
 
 ExtensionCache/
-settings/
 
 src/plugins/betterCamera.desktop
