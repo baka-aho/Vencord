@@ -108,12 +108,38 @@ function clean(str: string) {
         .trim();
 }
 
-function formatText(str: string, user: string, channel: string, displayName: string, nickname: string) {
-    return str
-        .replaceAll("{{USER}}", clean(user) || (user ? "Someone" : ""))
-        .replaceAll("{{CHANNEL}}", clean(channel) || "channel")
-        .replaceAll("{{DISPLAY_NAME}}", clean(displayName) || (displayName ? "Someone" : ""))
-        .replaceAll("{{NICKNAME}}", clean(nickname) || (nickname ? "Someone" : ""));
+function processConditionals(str: string) {
+    // Process conditional statements: [[IF]{{SELF}}=={{USER}};TEXT1;TEXT2]
+    return str.replace(/\[\[IF\]([^;]+)==([^;]+);([^;]*);([^\]]*)\]/g, (match, condition1, condition2, text1, text2) => {
+        // Trim whitespace from conditions
+        const cond1 = condition1.trim();
+        const cond2 = condition2.trim();
+
+        // Compare the conditions (case-insensitive for better matching)
+        return cond1.toLowerCase() === cond2.toLowerCase() ? text1 : text2;
+    });
+}
+
+function formatText(str: string, user: string, channelNew: string, channelOld: string, displayName: string, nickname: string, isMe: boolean) {
+    const currentUser = UserStore.getCurrentUser();
+    const selfName = clean(currentUser.username) || "You";
+    const selfDisplayName = clean(currentUser.globalName ?? currentUser.username) || "You";
+    const myGuildId = SelectedGuildStore.getGuildId();
+    const selfNickname = clean(GuildMemberStore.getNick(myGuildId!, currentUser.id) ?? currentUser.username) || "You";
+
+    // First replace all placeholders
+    let result = str
+        .replaceAll("{{SELF}}", selfName)
+        .replaceAll("{{USER}}", isMe ? selfName : (clean(user) || (user ? "Someone" : "")))
+        .replaceAll("{{CHANNELNEW}}", clean(channelNew) || "channel")
+        .replaceAll("{{CHANNELOLD}}", clean(channelOld) || "channel")
+        .replaceAll("{{DISPLAY_NAME}}", isMe ? selfDisplayName : (clean(displayName) || (displayName ? "Someone" : "")))
+        .replaceAll("{{NICKNAME}}", isMe ? selfNickname : (clean(nickname) || (nickname ? "Someone" : "")));
+
+    // Then process conditionals
+    result = processConditionals(result);
+
+    return result;
 }
 
 /*
@@ -128,15 +154,27 @@ let StatusMap = {} as Record<string, {
 // for some ungodly reason
 let myLastChannelId: string | undefined;
 
-function getTypeAndChannelId({ channelId, oldChannelId }: VoiceState, isMe: boolean) {
+function getTypeAndChannelInfo({ channelId, oldChannelId }: VoiceState, isMe: boolean) {
     if (isMe && channelId !== myLastChannelId) {
         oldChannelId = myLastChannelId;
         myLastChannelId = channelId;
     }
 
     if (channelId !== oldChannelId) {
-        if (channelId) return [oldChannelId ? "move" : "join", channelId];
-        if (oldChannelId) return ["leave", oldChannelId];
+        if (channelId) {
+            return {
+                type: oldChannelId ? "move" : "join",
+                newChannelId: channelId,
+                oldChannelId: oldChannelId
+            };
+        }
+        if (oldChannelId) {
+            return {
+                type: "leave",
+                newChannelId: null,
+                oldChannelId: oldChannelId
+            };
+        }
     }
     /*
     if (channelId) {
@@ -147,7 +185,7 @@ function getTypeAndChannelId({ channelId, oldChannelId }: VoiceState, isMe: bool
         if (oldStatus.mute) return ["unmute", channelId];
     }
     */
-    return ["", ""];
+    return { type: "", newChannelId: null, oldChannelId: null };
 }
 
 /*
@@ -189,11 +227,12 @@ function playSample(tempSettings: any, type: string) {
     speak(formatText(
         s[type + "Message"],
         currentUser.username,
-        "general",
+        "general", // channelNew
+        "lobby", // channelOld
         currentUser.globalName ?? currentUser.username,
-        GuildMemberStore.getNick(myGuildId!, currentUser.id) ?? currentUser.username),
-        s
-    );
+        GuildMemberStore.getNick(myGuildId!, currentUser.id) ?? currentUser.username,
+        true // isMe = true for sample
+    ), s);
 }
 
 export default definePlugin({
@@ -220,16 +259,30 @@ export default definePlugin({
                     if (channelId !== myChanId && oldChannelId !== myChanId) continue;
                 }
 
-                const [type, id] = getTypeAndChannelId(state, isMe);
+                const { type, newChannelId, oldChannelId: actualOldChannelId } = getTypeAndChannelInfo(state, isMe);
                 if (!type) continue;
 
                 const template = settings.store[type + "Message"];
-                const user = isMe && !settings.store.sayOwnName ? "" : UserStore.getUser(userId).username;
-                const displayName = user && ((UserStore.getUser(userId) as any).globalName ?? user);
-                const nickname = user && (GuildMemberStore.getNick(myGuildId!, userId) ?? user);
-                const channel = ChannelStore.getChannel(id).name;
+                const user = UserStore.getUser(userId).username;
+                const displayName = (UserStore.getUser(userId) as any).globalName ?? user;
+                const nickname = GuildMemberStore.getNick(myGuildId!, userId) ?? user;
 
-                speak(formatText(template, user, channel, displayName, nickname));
+                // Properly determine channel names based on event type
+                let channelNew = "";
+                let channelOld = "";
+
+                if (type === "join") {
+                    channelNew = newChannelId ? ChannelStore.getChannel(newChannelId).name : "";
+                    channelOld = "";
+                } else if (type === "leave") {
+                    channelNew = "";
+                    channelOld = actualOldChannelId ? ChannelStore.getChannel(actualOldChannelId).name : "";
+                } else if (type === "move") {
+                    channelNew = newChannelId ? ChannelStore.getChannel(newChannelId).name : "";
+                    channelOld = actualOldChannelId ? ChannelStore.getChannel(actualOldChannelId).name : "";
+                }
+
+                speak(formatText(template, user, channelNew, channelOld, displayName, nickname, isMe));
 
                 // updateStatuses(type, state, isMe);
             }
@@ -241,7 +294,8 @@ export default definePlugin({
             if (!s) return;
 
             const event = s.mute || s.selfMute ? "unmute" : "mute";
-            speak(formatText(settings.store[event + "Message"], "", ChannelStore.getChannel(chanId).name, "", ""));
+            const channelName = ChannelStore.getChannel(chanId).name;
+            speak(formatText(settings.store[event + "Message"], "", channelName, "", "", "", true));
         },
 
         AUDIO_TOGGLE_SELF_DEAF() {
@@ -250,7 +304,8 @@ export default definePlugin({
             if (!s) return;
 
             const event = s.deaf || s.selfDeaf ? "undeafen" : "deafen";
-            speak(formatText(settings.store[event + "Message"], "", ChannelStore.getChannel(chanId).name, "", ""));
+            const channelName = ChannelStore.getChannel(chanId).name;
+            speak(formatText(settings.store[event + "Message"], "", channelName, "", "", "", true));
         }
     },
 
@@ -269,8 +324,11 @@ export default definePlugin({
                     You can customise the spoken messages below. You can disable specific messages by setting them to nothing
                 </Forms.FormText>
                 <Forms.FormText>
-                    The special placeholders <code>{"{{USER}}"}</code>, <code>{"{{DISPLAY_NAME}}"}</code>, <code>{"{{NICKNAME}}"}</code> and <code>{"{{CHANNEL}}"}</code>{" "}
-                    will be replaced with the user's name (nothing if it's yourself), the user's display name, the user's nickname on current server and the channel's name respectively
+                    The special placeholders <code>{"{{USER}}"}</code>, <code>{"{{SELF}}"}</code>, <code>{"{{DISPLAY_NAME}}"}</code>, <code>{"{{NICKNAME}}"}</code>, <code>{"{{CHANNELNEW}}"}</code> and <code>{"{{CHANNELOLD}}"}</code>{" "}
+                    will be replaced with the user's name (for others), your own name, the user's display name, the user's nickname on current server, the new channel's name and the old channel's name respectively
+                </Forms.FormText>
+                <Forms.FormText>
+                    You can use conditional formatting: <code>{"[[IF]{{SELF}}=={{USER}};TEXT1;TEXT2]"}</code> will show TEXT1 if it's yourself, TEXT2 if it's someone else
                 </Forms.FormText>
                 <Forms.FormTitle className={Margins.top20} tag="h3">Play Example Sounds</Forms.FormTitle>
                 <div
