@@ -8,6 +8,7 @@ import "./style.css";
 
 import { classNameFactory } from "@api/Styles";
 import { proxyLazy } from "@utils/lazy";
+import { Devs } from "@utils/constants";
 import definePlugin from "@utils/types";
 import { zustandCreate, zustandPersist } from "@webpack/common";
 
@@ -24,12 +25,7 @@ const STORAGE_KEY = "BetterForums";
 export default definePlugin({
     name: "BetterForums",
     description: "Complete forum list view redesign with QoL features.",
-    authors: [
-        {
-            name: "Davri",
-            id: 457579346282938368n,
-        },
-    ],
+    authors: [Devs.Mickey],
     settings,
     patches: [
         {
