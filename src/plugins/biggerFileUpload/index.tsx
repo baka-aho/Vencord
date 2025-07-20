@@ -626,7 +626,6 @@ async function uploadFileToGofile(file: File, channelId: string) {
 
 async function uploadFileToCatbox(file: File, channelId: string, temporary: boolean) {
     try {
-        const fileSizeMB = file.size / (1024 * 1024);
         const arrayBuffer = await file.arrayBuffer();
         const fileName = file.name;
         const fileType = file.type;
@@ -654,7 +653,7 @@ async function uploadFileToCatbox(file: File, channelId: string, temporary: bool
             const videoExtensions = [".mp4", ".mkv", ".webm", ".avi", ".mov", ".flv", ".wmv", ".m4v", ".mpg", ".mpeg", ".3gp", ".ogv"];
             let finalUrl = uploadResult;
 
-            if (fileSizeMB > 50 && videoExtensions.some(ext => finalUrl.endsWith(ext))) {
+            if (videoExtensions.some(ext => finalUrl.endsWith(ext))) {
                 const uploadedFileName = finalUrl.split("/").pop();
                 finalUrl = `https://embeds.video/cat/${uploadedFileName}`;
             }
