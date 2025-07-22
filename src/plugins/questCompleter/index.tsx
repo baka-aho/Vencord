@@ -214,6 +214,7 @@ export default definePlugin({
                 return;
             } else {
                 showToast("Successfully auto enrolled in the quest!");
+                await new Promise(r => setTimeout(r, 2000));
                 quest = questId ? getQuestById(questId) : getLeftQuests();
             }
         }
@@ -268,7 +269,10 @@ export default definePlugin({
 
         if (taskName === "WATCH_VIDEO" || taskName === "WATCH_VIDEO_ON_MOBILE") {
             const tolerance = 2, speed = 10;
-            const diff = Math.floor((Date.now() - new Date(quest.userStatus.enrolledAt).getTime()) / 1000);
+            const enrolledAt = quest.userStatus?.enrolledAt
+                ? new Date(quest.userStatus.enrolledAt).getTime()
+                : Date.now();
+            const diff = Math.floor((Date.now() - enrolledAt) / 1000);
             const startingPoint = Math.min(Math.max(Math.ceil(secondsDone), diff), secondsNeeded);
             const startTime = Date.now();
 
