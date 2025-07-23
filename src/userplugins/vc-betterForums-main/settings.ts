@@ -5,9 +5,8 @@
  */
 
 import { definePluginSettings } from "@api/Settings";
-import { makeRange } from "@components/PluginSettings/components";
 import { getIntlMessage } from "@utils/discord";
-import { OptionType } from "@utils/types";
+import { makeRange, OptionType } from "@utils/types";
 
 import { TagSection } from "./components/Settings";
 import { CustomTag } from "./types";
@@ -61,8 +60,8 @@ export const settings = definePluginSettings({
                 value === MaxTagCount.OFF
                     ? getIntlMessage("FORM_LABEL_OFF")
                     : value === MaxTagCount.ALL
-                    ? getIntlMessage("FORM_LABEL_ALL")
-                    : value,
+                        ? getIntlMessage("FORM_LABEL_ALL")
+                        : value,
         },
     },
     maxMediaCount: {
@@ -77,8 +76,8 @@ export const settings = definePluginSettings({
                 value === MaxMediaCount.OFF
                     ? getIntlMessage("FORM_LABEL_OFF")
                     : value === MaxMediaCount.ALL
-                    ? getIntlMessage("FORM_LABEL_ALL")
-                    : value,
+                        ? getIntlMessage("FORM_LABEL_ALL")
+                        : value,
         },
     },
     mediaSize: {
@@ -146,8 +145,8 @@ export const settings = definePluginSettings({
                 value === MaxReactionCount.OFF
                     ? getIntlMessage("FORM_LABEL_OFF")
                     : value === MaxReactionCount.ALL
-                    ? getIntlMessage("FORM_LABEL_ALL")
-                    : value,
+                        ? getIntlMessage("FORM_LABEL_ALL")
+                        : value,
         },
     },
     tagOverrides: {
