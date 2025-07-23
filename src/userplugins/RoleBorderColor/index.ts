@@ -94,6 +94,7 @@ export default definePlugin({
                     const roleColor = roleCircle.style.backgroundColor;
                     if (roleColor) {
                         pill.style.setProperty("--role-color", roleColor);
+
                     }
                 }
             });
