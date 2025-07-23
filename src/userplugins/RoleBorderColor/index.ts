@@ -15,14 +15,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
 import { Devs } from "@utils/constants";
 import definePlugin from "@utils/types";
 
 export default definePlugin({
     name: "RoleBorderColor",
-    description: "Applies a neon glow to role pills with brightness adjustment on hover, with consistent z-index.",
+    description: "Applies a neon glow to role pills with brightness adjustment on hover, supporting both single and gradient colors.",
     authors: [Devs.Aho],
+
     start() {
         const style = document.createElement("style");
         style.textContent = `
@@ -34,7 +34,7 @@ export default definePlugin({
             div.role_dfa8b6.pill_dfa8b6 {
                 border: 2.5px solid var(--role-color) !important;
                 border-radius: 12px !important;
-                box-shadow: 
+                box-shadow:
                     0 0 8px var(--role-color),
                     0 0 12px var(--role-color),
                     0 0 18px var(--role-color) !important;
@@ -57,14 +57,44 @@ export default definePlugin({
             div.role_dfa8b6.pill_dfa8b6:last-child {
                 margin-right: 0 !important;
             }
+            /* Support for gradient roles */
+            div.role_dfa8b6.pill_dfa8b6.gradient-role {
+                border: 2.5px solid transparent !important;
+                background: 
+                    linear-gradient(#181828e6, #181828e6) padding-box,
+                    var(--role-gradient) border-box !important;
+                box-shadow:
+                    0 0 8px var(--role-gradient-shadow),
+                    0 0 12px var(--role-gradient-shadow),
+                    0 0 18px var(--role-gradient-shadow) !important;
+            }
         `;
         document.head.appendChild(style);
 
         const syncColors = () => {
             document.querySelectorAll(".role_dfa8b6.pill_dfa8b6").forEach(pill => {
-                const roleColor = pill.querySelector(".roleCircle_dfa8b6")?.style.backgroundColor;
-                if (roleColor) {
-                    pill.style.setProperty("--role-color", roleColor);
+                const roleCircle = pill.querySelector(".roleCircle_dfa8b6");
+                if (!roleCircle) return;
+
+                const gradient1 = roleCircle.style.getPropertyValue("--custom-gradient-color-1");
+                const gradient2 = roleCircle.style.getPropertyValue("--custom-gradient-color-2");
+                const gradient3 = roleCircle.style.getPropertyValue("--custom-gradient-color-3");
+
+                if (gradient1 && gradient2) {
+                    pill.classList.add("gradient-role");
+                    const gradientColors = gradient3 ?
+                        `${gradient1}, ${gradient2}, ${gradient3}` :
+                        `${gradient1}, ${gradient2}`;
+
+                    pill.style.setProperty("--role-gradient", `linear-gradient(45deg, ${gradientColors})`);
+                    pill.style.setProperty("--role-gradient-shadow", gradient1);
+
+                } else {
+                    pill.classList.remove("gradient-role");
+                    const roleColor = roleCircle.style.backgroundColor;
+                    if (roleColor) {
+                        pill.style.setProperty("--role-color", roleColor);
+                    }
                 }
             });
         };
@@ -76,6 +106,7 @@ export default definePlugin({
         this.style = style;
         this.observer = observer;
     },
+
     stop() {
         this.style?.remove();
         this.observer?.disconnect();
