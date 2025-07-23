@@ -14,11 +14,12 @@ const settings = definePluginSettings({
     SavedIds: {
         description: "The amount of soundboard ids you want to save at a time (0 lets you save infinite)",
         type: OptionType.COMPONENT,
-        component: ({ setValue, setError }) => {
+        component: ({ setValue }) => {
             const value = settings.store.SavedIds ?? 50;
             const [state, setState] = useState(`${value}`);
             const [shouldShowWarning, setShouldShowWarning] = useState(false);
             const [errorMessage, setErrorMessage] = useState<string | null>(null);
+            const [error, setError] = useState(false);
 
             function handleChange(newValue) {
                 const changed = Number(newValue);

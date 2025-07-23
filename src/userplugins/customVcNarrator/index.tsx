@@ -43,8 +43,11 @@ const VoiceStateStore = findByPropsLazy("getVoiceStatesForChannel", "getCurrentC
 // Filtering out events is not as simple as just dropping duplicates, as otherwise mute, unmute, mute would
 // not say the second mute, which would lead you to believe they're unmuted
 
-async function speak(text: string, { volume, rate } = settings.store) {
-    if (text.trim().length === 0) return;
+async function speak(text: string) {
+    if (!text || text.trim().length === 0) return;
+
+    const { volume, rate } = settings.store;
+
     try {
         const voice = getCurrentVoice();
         if (!voice) {
@@ -219,20 +222,24 @@ function updateStatuses(type: string, { deaf, mute, selfDeaf, selfMute, userId, 
 }
 */
 
-function playSample(tempSettings: any, type: string) {
-    const s = Object.assign({}, settings.plain, tempSettings);
+function playSample(type: string) {
     const currentUser = UserStore.getCurrentUser();
     const myGuildId = SelectedGuildStore.getGuildId();
 
     speak(formatText(
-        s[type + "Message"],
+        settings.store[type + "Message"],
         currentUser.username,
         "general", // channelNew
         "lobby", // channelOld
         currentUser.globalName ?? currentUser.username,
+<<<<<<< HEAD:src/userplugins/customVcNarrator/index.tsx
         GuildMemberStore.getNick(myGuildId!, currentUser.id) ?? currentUser.username,
         true // isMe = true for sample
     ), s);
+=======
+        GuildMemberStore.getNick(myGuildId!, currentUser.id) ?? currentUser.username
+    ));
+>>>>>>> upstream/main:src/plugins/customVcNarrator/index.tsx
 }
 
 export default definePlugin({
@@ -309,7 +316,7 @@ export default definePlugin({
         }
     },
 
-    settingsAboutComponent({ tempSettings: s }) {
+    settingsAboutComponent() {
 
         const types = useMemo(
             () => Object.keys(settings.def).filter(k => k.endsWith("Message")).map(k => k.slice(0, -7)),
@@ -340,7 +347,7 @@ export default definePlugin({
                     className={"vc-narrator-buttons"}
                 >
                     {types.map(t => (
-                        <Button key={t} onClick={() => playSample(s, t)}>
+                        <Button key={t} onClick={() => playSample(t)}>
                             {wordsToTitle([t])}
                         </Button>
                     ))}
