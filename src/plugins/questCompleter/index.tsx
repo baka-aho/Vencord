@@ -271,7 +271,7 @@ export default definePlugin({
             const tolerance = 7, speed = 10;
             const enrolledAt = quest.userStatus?.enrolledAt
                 ? new Date(quest.userStatus.enrolledAt).getTime()
-                : Date.now();
+                : Date.now() - 20 * 1000;
 
             const diff = Math.floor((Date.now() - enrolledAt) / 1000);
             const startingPoint = Math.min(Math.max(Math.ceil(secondsDone), diff), secondsNeeded);
