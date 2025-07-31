@@ -57,7 +57,7 @@ const settings = definePluginSettings({
 export default definePlugin({
     name: "MessageClickActions",
     description: "Hold Backspace and click to delete, double click to edit/reply",
-    authors: [Devs.Ven],
+    authors: [Devs.Aho],
 
     settings,
 
@@ -81,12 +81,15 @@ export default definePlugin({
             if (channel.guild_id && !PermissionStore.can(PermissionsBits.SEND_MESSAGES, channel)) return;
             if (msg.deleted === true) return;
 
-            if (isMe) {
+            // Check if shift is pressed for edit action
+            if (event.shiftKey && isMe) {
+                // Shift + double click to edit (only your own messages)
                 if (!settings.store.enableDoubleClickToEdit || EditStore.isEditing(channel.id, msg.id) || msg.state !== "SENT") return;
 
                 MessageActions.startEditMessage(channel.id, msg.id, msg.content);
                 event.preventDefault();
             } else {
+                // Regular double click to reply (any message)
                 if (!settings.store.enableDoubleClickToReply) return;
 
                 const EPHEMERAL = 64;
