@@ -268,39 +268,58 @@ export default definePlugin({
         };
 
         if (taskName === "WATCH_VIDEO" || taskName === "WATCH_VIDEO_ON_MOBILE") {
-            const tolerance = 2, speed = 10;
+            const tolerance = 7, speed = 10;
             const enrolledAt = quest.userStatus?.enrolledAt
                 ? new Date(quest.userStatus.enrolledAt).getTime()
-                : Date.now();
+                : Date.now() - 20 * 1000;
+
             const diff = Math.floor((Date.now() - enrolledAt) / 1000);
             const startingPoint = Math.min(Math.max(Math.ceil(secondsDone), diff), secondsNeeded);
             const startTime = Date.now();
 
             console.log(`[Quest] Starting ${taskName}: ${questName} at ${startingPoint}/${secondsNeeded}s`);
 
-            const updateProgress = () => {
-                const currentProgress = Math.min(secondsNeeded, startingPoint + (Date.now() - startTime) / 1000 * (speed / tolerance));
+            const updateProgress = async () => {
+                const elapsed = (Date.now() - startTime) / 1000;
+                const currentProgress = Math.min(
+                    secondsNeeded,
+                    startingPoint + elapsed * (speed / tolerance)
+                );
+
                 console.log(`[Quest] Progress: ${currentProgress.toFixed(1)}s`);
 
                 try {
-                    questsVideoProgress(quest.id, currentProgress);
+                    const res = await RestAPI.post({
+                        url: `/quests/${quest.id}/video-progress`,
+                        body: { timestamp: currentProgress }
+                    });
+
+                    if (res.status === 400) {
+                        console.warn(`[Quest] Server rejected progress (${currentProgress.toFixed(1)}s). Retrying...`);
+                        return; // don't advance, retry on next interval
+                    }
+
+                    if (res.body?.completed_at || currentProgress >= secondsNeeded) {
+                        console.log("[Quest] Completing quest");
+                        clearInterval(runningQuest.interval);
+                        runningQuests.delete(quest.id);
+                        showQuestNotification("Completed", "Quest finished!");
+                        return;
+                    }
+
                     showQuestNotification(
                         "Progress",
                         `${Math.floor(currentProgress)}/${secondsNeeded}s (${Math.floor(currentProgress / secondsNeeded * 100)}%)`
                     );
 
-                    if (currentProgress >= secondsNeeded) {
-                        console.log("[Quest] Completing quest");
-                        clearInterval(runningQuest.interval);
-                        runningQuests.delete(quest.id);
-                        showQuestNotification("Completed", "Quest finished!");
-                    }
                 } catch (error) {
                     console.error("[Quest] Error:", error);
                     runningQuests.delete(quest.id);
+                    clearInterval(runningQuest.interval);
                 }
             };
 
+            // Start loop
             updateProgress();
             runningQuest.interval = setInterval(updateProgress, tolerance * 1000);
 
