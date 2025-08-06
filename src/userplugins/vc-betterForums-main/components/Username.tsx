@@ -5,7 +5,7 @@
  */
 
 import { Text } from "@webpack/common";
-import { TextProps } from "@webpack/types";
+import { TextProps } from "@vencord/discord-types";
 import { Channel, Message, User } from "discord-types/general";
 
 import { cl } from "..";

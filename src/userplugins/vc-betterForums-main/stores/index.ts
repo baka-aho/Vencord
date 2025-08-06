@@ -14,7 +14,7 @@ import {
     RelationshipStore as _RelationshipStore,
     UserStore as _UserStore,
 } from "@webpack/common";
-import { FluxStore } from "@webpack/types";
+import { FluxStore } from "@vencord/discord-types";
 
 import { useStores } from "../hooks";
 import { ExtendedStores as S } from "./types";

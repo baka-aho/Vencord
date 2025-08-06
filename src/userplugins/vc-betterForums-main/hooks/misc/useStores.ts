@@ -5,7 +5,7 @@
  */
 
 import { useStateFromStores } from "@webpack/common";
-import { FluxStore } from "@webpack/types";
+import { FluxStore } from "@vencord/discord-types";
 
 export function useStores<TStores extends readonly FluxStore[], TReturn>(
     stores: [...TStores],

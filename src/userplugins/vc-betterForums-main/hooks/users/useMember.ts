@@ -11,49 +11,84 @@ import { GuildMemberRequesterStore, GuildMemberStore, RelationshipStore } from "
 import { FullGuildMember, FullUser, Member } from "../../types";
 import { useStores } from "../misc/useStores";
 
-export function useMember(user: FullUser | null, channel: Channel): Member {
+export function useMember(user: FullUser | null, channel: Channel | null): Member {
     const userId = user?.id;
     const guildId = channel?.guild_id;
 
     useEffect(() => {
-        userId && GuildMemberRequesterStore.requestMember(guildId, userId);
+        // Only request if both userId and guildId exist
+        if (userId && guildId) {
+            GuildMemberRequesterStore.requestMember(guildId, userId);
+        }
     }, [guildId, userId]);
 
     const member = GuildMemberStore.use(
-        $ =>
-            !guildId || !userId ? null : ($.getMember(guildId, userId) as FullGuildMember | null),
+        ($) => {
+            if (!guildId || !userId) return null;
+            return $.getMember(guildId, userId) as FullGuildMember | null;
+        },
         [guildId, userId]
     );
 
     const { guild, guildRoles } = useStores(
         [GuildStore, GuildRoleStore],
         (guildStore, guildRoleStore) => {
+            if (!guildId) return { guild: null, guildRoles: undefined };
+
             const guild = guildStore.getGuild(guildId);
-            const guildRoles = guild ? guildRoleStore.getRoles(guild.id) : undefined;
+            const guildRoles = guild ? guildRoleStore.getRolesSnapshot(guild.id) : undefined;
             return { guild, guildRoles };
         },
         [guildId]
     );
 
     const friendNickname = RelationshipStore.use(
-        $ => (userId && channel?.isPrivate() ? $.getNickname(userId) : null),
+        ($) => {
+            if (!userId || !channel?.isPrivate?.()) return null;
+            return $.getNickname(userId);
+        },
         [userId, channel]
     );
 
     const userName = user?.global_name || user?.globalName || user?.username || "???";
 
-    if (!user?.id || !channel || !member) return { nick: userName };
+    // Early returns with proper fallbacks
+    if (!user?.id) {
+        return { nick: "???" };
+    }
 
-    if (!guild?.id) return { nick: friendNickname ?? userName };
+    if (!channel) {
+        return { nick: userName };
+    }
 
+    // For DM channels or channels without guild
+    if (!guildId || !guild?.id) {
+        return {
+            nick: friendNickname ?? userName,
+            userId: user.id
+        };
+    }
+
+    // If no member data available yet, return basic info
+    if (!member) {
+        return {
+            nick: userName,
+            userId: user.id,
+            guildId: guild.id
+        };
+    }
+
+    // Full member data available
     return {
         ...member,
-        nick: member?.nick ?? userName,
-        colorRoleName:
-            member?.colorRoleId && guild ? guildRoles?.[member.colorRoleId]?.name : undefined,
+        userId: user.id, // Ensure userId is always present
+        nick: member.nick ?? userName,
+        colorRoleName: member.colorRoleId && guildRoles?.[member.colorRoleId]
+            ? guildRoles[member.colorRoleId].name
+            : undefined,
         guildMemberAvatar: member.avatar,
         guildMemberAvatarDecoration: member.avatarDecoration,
-        primaryGuild: user?.primaryGuild,
+        primaryGuild: user.primaryGuild,
         guildId: guild.id,
     };
 }
