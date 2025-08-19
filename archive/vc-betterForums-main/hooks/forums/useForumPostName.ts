@@ -9,14 +9,15 @@ import { useMemo } from "@webpack/common";
 import { Channel } from "discord-types/general";
 import { ReactNode } from "react";
 
+
 import { ForumSearchStore } from "../../stores";
 import { TitlePostProcessor } from "../../types";
 
 const getTitlePostprocessor: (query: string) => TitlePostProcessor =
     findByCodeLazy('type:"highlight"');
 const textHightlightParser: (
-    data: { content: string; embeds: [] },
-    options: { postProcessor: TitlePostProcessor }
+    data: { content: string; embeds: []; },
+    options: { postProcessor: TitlePostProcessor; }
 ) => {
     content: React.ReactNode;
     hasSpoilerEmbeds: boolean;
