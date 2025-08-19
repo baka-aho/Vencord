@@ -93,10 +93,10 @@ export default definePlugin({
         },
         {
             predicate: () => settings.store.showPanel,
-            find: "this.renderEmbeddedActivity():",
+            find: "this.renderEmbeddedActivity()",
             replacement: {
-                match: /(\|\|.{0,200}children:.{0,50})"div"(.*this\.renderEmbeddedActivity\(\))/,
-                replace: "$1$self.WrapperComponent$2"
+                match: /(?<=let{canGoLive.{0,500}\()"div"(?=,{className:\i\.body)/,
+                replace: "$self.WrapperComponent"
             }
         }
     ],
