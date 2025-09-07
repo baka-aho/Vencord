@@ -86,7 +86,7 @@ const expressionPickerPatch: NavContextMenuPatchCallback = (children, props: { t
 export default definePlugin({
     name: "CopyStickerLinks",
     description: "Adds the ability to copy & open Sticker links",
-    authors: [Devs.Ven, Devs.Byeoon],
+    authors: [Devs.Ven],
     contextMenus: {
         "message": messageContextMenuPatch,
         "expression-picker": expressionPickerPatch

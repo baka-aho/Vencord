@@ -125,7 +125,7 @@ function VencordPopoutButton({ buttonClass }: { buttonClass: string; }) {
 export default definePlugin({
     name: "VencordToolbox",
     description: "Adds a button to the titlebar that houses Vencord quick actions",
-    authors: [Devs.Ven, Devs.AutumnVN],
+    authors: [Devs.Ven],
 
     patches: [
         {
